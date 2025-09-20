@@ -8,11 +8,11 @@ async function fetchUniqueCocktails(count: number): Promise<Cocktail[]> {
   const seen = new Set<string>();
   const cocktails: Cocktail[] = [];
 
-  // keep fetching until we have enough unique cocktails
+ 
   while (cocktails.length < count) {
     const needed = count - cocktails.length;
 
-    // fetch multiple in parallel
+
     const results = await Promise.all(
       Array.from({ length: needed }, () => getRandomCocktail())
     );
