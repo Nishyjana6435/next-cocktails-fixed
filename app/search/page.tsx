@@ -5,7 +5,7 @@ import SearchInput from "@/components/SearchInput";
 import CocktailCard, { Cocktail } from "@/components/CocktailCard";
 import FavouritesList from "@/components/FavouriteList";
 
-// Debounce hook
+
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function SearchPage() {
 
   const debouncedQuery = useDebounce(query, 500);
 
-  // Fetch cocktails when query changes
+  
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setDrinks([]);
@@ -60,12 +60,12 @@ export default function SearchPage() {
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-      {/* Sidebar for favourites */}
+      
       <aside className="lg:col-span-1">
         <FavouritesList favourites={favourites} onRemove={removeFromFavourites} />
       </aside>
 
-      {/* Main content */}
+     
       <div className="lg:col-span-3 space-y-6">
         <header className="space-y-2">
           <h1 className="text-2xl font-bold">Search Cocktails</h1>
@@ -84,7 +84,7 @@ export default function SearchPage() {
           </p>
         )}
 
-        {/* Search results */}
+       
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {drinks.map((c) => (
             <CocktailCard
