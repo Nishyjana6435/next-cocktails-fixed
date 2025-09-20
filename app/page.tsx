@@ -1,25 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import CocktailCard, { Cocktail } from "@/components/CocktailCard";
-import { getRandomCocktail } from "@/lib/api";
+import CocktailCard from "@/components/CocktailCard";
+import { Cocktail, getRandomCocktail } from "@/lib/api";
 
 async function fetchUniqueCocktails(count: number): Promise<Cocktail[]> {
   const seen = new Set<string>();
   const cocktails: Cocktail[] = [];
 
+  // keep fetching until we have enough unique cocktails
   while (cocktails.length < count) {
-    const { drinks } = await getRandomCocktail();
-    const c = drinks[0];
+    const needed = count - cocktails.length;
 
-    if (!seen.has(c.idDrink)) {
-      seen.add(c.idDrink);
-      cocktails.push({
-        idDrink: c.idDrink,
-        strDrink: c.strDrink,
-        strDrinkThumb: c.strDrinkThumb,
-        strCategory: c.strCategory,
-      });
+    // fetch multiple in parallel
+    const results = await Promise.all(
+      Array.from({ length: needed }, () => getRandomCocktail())
+    );
+
+    for (const { drinks } of results) {
+      const c = drinks[0];
+      if (c && !seen.has(c.idDrink)) {
+        seen.add(c.idDrink);
+        cocktails.push(c);
+      }
     }
   }
 
@@ -29,12 +32,20 @@ async function fetchUniqueCocktails(count: number): Promise<Cocktail[]> {
 export default function HomePage() {
   const [drinks, setDrinks] = useState<Cocktail[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadDrinks = async () => {
     setLoading(true);
-    const cocktails = await fetchUniqueCocktails(5);
-    setDrinks(cocktails);
-    setLoading(false);
+    setError(null);
+    try {
+      const cocktails = await fetchUniqueCocktails(5);
+      setDrinks(cocktails);
+    } catch (err) {
+      console.error("Failed to fetch cocktails", err);
+      setError("Could not load cocktails. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -59,19 +70,24 @@ export default function HomePage() {
         </button>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {drinks.map((c) => (
-          <CocktailCard
-            key={c.idDrink}
-            cocktail={{
-              idDrink: c.idDrink,
-              strDrink: c.strDrink,
-              strDrinkThumb: c.strDrinkThumb,
-              strCategory: c.strCategory,
-            }}
-          />
-        ))}
-      </div>
+      {error && <p className="text-red-500">{error}</p>}
+
+      {loading && drinks.length === 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-40 bg-gray-100 animate-pulse rounded-xl"
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {drinks.map((c) => (
+            <CocktailCard key={c.idDrink} cocktail={c} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
