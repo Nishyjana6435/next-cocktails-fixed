@@ -1,6 +1,16 @@
-const BASE = process.env.NEXT_PUBLIC_COCKTAIL_API_BASE ?? "https://www.thecocktaildb.com/api/json/v1/1";
+const BASE =
+  process.env.NEXT_PUBLIC_COCKTAIL_API_BASE ??
+  "https://www.thecocktaildb.com/api/json/v1/1";
 
-export type Drink = Record<string, any>;
+
+
+export type Cocktail = {
+  idDrink: string;
+  strDrink: string;
+  strDrinkThumb: string;
+  strCategory?: string | null;
+  strAlcoholic?: string | null;
+};
 
 async function getJSON<T>(path: string): Promise<T> {
   const url = `${BASE}${path}`;
@@ -10,13 +20,17 @@ async function getJSON<T>(path: string): Promise<T> {
 }
 
 export async function getRandomCocktail() {
-  return getJSON<{ drinks: Drink[] }>("/random.php");
+  return getJSON<{ drinks: Cocktail[] }>("/random.php");
 }
 
 export async function getCocktailById(id: string) {
-  return getJSON<{ drinks: Drink[] }>(`/lookup.php?i=${encodeURIComponent(id)}`);
+  return getJSON<{ drinks: Cocktail[] }>(
+    `/lookup.php?i=${encodeURIComponent(id)}`
+  );
 }
 
 export async function searchCocktailsByName(q: string) {
-  return getJSON<{ drinks: Drink[] | null }>(`/search.php?s=${encodeURIComponent(q)}`);
+  return getJSON<{ drinks: Cocktail[] | null }>(
+    `/search.php?s=${encodeURIComponent(q)}`
+  );
 }

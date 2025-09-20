@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import SearchInput from "@/components/SearchInput";
-import CocktailCard, { Cocktail } from "@/components/CocktailCard";
+import CocktailGrid from "@/components/CocktailGrid";
 import FavouritesList from "@/components/FavouriteList";
+import { Cocktail } from "@/components/CocktailCard";
+import { searchCocktailsByName } from "@/lib/api";
 
-
+// Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -23,7 +25,6 @@ export default function SearchPage() {
 
   const debouncedQuery = useDebounce(query, 500);
 
-  
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setDrinks([]);
@@ -33,10 +34,7 @@ export default function SearchPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const res = await fetch(
-          `https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${debouncedQuery}`
-        );
-        const data = await res.json();
+        const data = await searchCocktailsByName(debouncedQuery);
         setDrinks(data.drinks ?? []);
       } catch (err) {
         console.error("Search error", err);
@@ -60,12 +58,13 @@ export default function SearchPage() {
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-      
       <aside className="lg:col-span-1">
-        <FavouritesList favourites={favourites} onRemove={removeFromFavourites} />
+        <FavouritesList
+          favourites={favourites}
+          onRemove={removeFromFavourites}
+        />
       </aside>
 
-     
       <div className="lg:col-span-3 space-y-6">
         <header className="space-y-2">
           <h1 className="text-2xl font-bold">Search Cocktails</h1>
@@ -84,17 +83,7 @@ export default function SearchPage() {
           </p>
         )}
 
-       
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {drinks.map((c) => (
-            <CocktailCard
-              key={c.idDrink}
-              cocktail={c}
-              actionLabel="Add"
-              onAction={addToFavourites}
-            />
-          ))}
-        </div>
+        <CocktailGrid drinks={drinks} onAdd={addToFavourites} />
       </div>
     </section>
   );
